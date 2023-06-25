@@ -1,0 +1,11 @@
+##ansible-playbook -i inventory/hosts -e hosts=<host-group-inventory> zabbix-agent-setup.yml
+---
+- hosts: "{{ hosts }}"
+  become: true
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    zbx_srv_ip: 192.168.1.63
+    zbx_srv_port: 10051
+  roles:
+    - zabbix-agent

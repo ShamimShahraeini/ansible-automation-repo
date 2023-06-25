@@ -1,0 +1,129 @@
+---
+- name: Ping hosts
+  ping:
+
+- name: Check OS
+  ansible.builtin.debug:
+    msg: "{{ ansible_os_family }}-{{ ansible_distribution }}:{{ ansible_distribution_major_version }}-{{ ansible_distribution_release }}"
+
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+####ubuntu 20
+#- name: Download and install zabbix repo
+#  ansible.builtin.apt:
+#    deb: https://repo.zabbix.com/zabbix/5.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_5.0-1+focal_all.deb
+#  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+
+- name: Copy the zabbix pkg file
+  ansible.builtin.template:
+    src: ./templates/zabbix-release_5.0-1_focal_all.deb
+    dest: ./
+    mode: '0777'
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+
+- name: Pre-install zabbix-agent2
+  ansible.builtin.command: dpkg -i ./zabbix-release_5.0-1_focal_all.deb && apt update
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+
+- name: Install zabbix-agent2
+  ansible.builtin.apt:
+    pkg:
+    - zabbix-agent2
+    #- zabbix-agent2-plugin-*
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+
+- name: Stop and disable zabbix-agent1
+  ansible.builtin.systemd:
+    name: zabbix-agent
+    state: stopped
+    enabled: false
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20" and ansible_facts.services['zabbix-agent.service'] is defined
+
+- name: Stop zabbix-agent2
+  ansible.builtin.systemd:
+    name: zabbix-agent2
+    state: stopped
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20" and ansible_facts.services['zabbix-agent2.service'] is defined
+  notify: Restart and enable zabbix-agent2
+
+####ubuntu 18
+- name: Install zabbix-agent
+  ansible.builtin.apt:
+    pkg:
+    - zabbix-agent
+    #- zabbix-agent-plugin-*
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18"
+
+- name: Restart zabbix-agent
+  ansible.builtin.systemd:
+    name: zabbix-agent
+    state: restarted
+    enabled: true
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18" and ansible_facts.services['zabbix-agent.service'] is defined
+
+- name: Create /etc/zabbix/scripts directory
+  ansible.builtin.file:
+    path: /etc/zabbix/scripts
+    state: directory
+    owner: zabbix
+    group: zabbix
+    mode: 0700
+
+####ubuntu 20
+- name: Change zabbix_agent2.conf Hostname
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    regexp: '^Hostname=*'
+    line: "Hostname={{ ansible_hostname }}"
+    state: present
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+  notify: Restart and enable zabbix-agent2
+
+- name: Change zabbix_agent2.conf ServerActive
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    regexp: '^ServerActive='
+    line: "ServerActive={{ zbx_srv_ip }}:{{ zbx_srv_port}}"
+    state: present
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+  notify: Restart and enable zabbix-agent2
+
+- name: Change zabbix_agent2.conf Server
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    regexp: '^Server='
+    line: "Server={{ zbx_srv_ip }}"
+    state: present
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+  notify: Restart and enable zabbix-agent2
+
+####ubuntu 18
+- name: Change zabbix_agent.conf Hostname
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    regexp: '^Hostname=*'
+    line: "Hostname={{ ansible_hostname }}"
+    state: present
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18"
+  notify: Restart and enable zabbix-agent
+
+- name: Change zabbix_agent.conf ServerActive
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    regexp: '^ServerActive='
+    line: "ServerActive={{ zbx_srv_ip }}:{{ zbx_srv_port}}"
+    state: present
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18"
+  notify: Restart and enable zabbix-agent
+
+- name: Change zabbix_agent.conf Server
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    regexp: '^Server='
+    line: "Server={{ zbx_srv_ip }}"
+    state: present
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18"
+  notify: Restart and enable zabbix-agent
