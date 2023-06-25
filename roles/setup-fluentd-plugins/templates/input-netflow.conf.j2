@@ -1,0 +1,13 @@
+######################
+####### Input ########
+######################
+ 
+<source>
+  @type netflow
+  tag netflow.event
+  bind {{ansible_default_ipv4.address}}
+  port {{ netflow_input_port }}
+  cache_ttl 6000
+  versions [5, 9]
+  definitions /etc/td-agent/config.d/template/netflow_fields.yml
+</source>

@@ -1,0 +1,7 @@
+---
+
+- name: Add netflow hostname mapping configuration
+  become: true
+  template:
+    src: "./templates/netflow-hostname-mapping.conf.j2"
+    dest: "/etc/td-agent/config.d/mapping.d/netflow-hostname-mapping.conf"

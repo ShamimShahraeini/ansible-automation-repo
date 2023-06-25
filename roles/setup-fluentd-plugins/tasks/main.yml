@@ -1,0 +1,18 @@
+---
+- block:
+    - include_tasks: syslog-plugin.yml
+  tags: syslog
+
+- block:
+    - include_tasks: gelf-plugin.yml
+  tags: gelf
+
+- block:
+    - include_tasks: netflow-plugin.yml
+    - include_tasks: lookup-plugin.yml
+    - include_tasks: netflow-hostnames-mapping.yml
+  tags: netflow
+
+- block:
+    - include_tasks: monitoring-exposer.yml
+  tags: always

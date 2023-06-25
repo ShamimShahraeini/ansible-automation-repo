@@ -1,0 +1,11 @@
+---
+__td_repository:
+    td_url: "https://packages.treasuredata.com/4/debian/buster/pool/contrib/f/fluentd-apt-source/fluentd-apt-source_2020.8.25-1_all.deb"
+    prometheus_url: "https://rubygems.org/downloads/fluent-plugin-prometheus-0.3.0.gem"
+
+
+config_directory:
+    - input.d
+    - monitoring.d
+    - output.d
+    - mapping.d

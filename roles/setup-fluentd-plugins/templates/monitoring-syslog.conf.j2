@@ -1,0 +1,21 @@
+######################
+## Input monitoring ##
+######################
+
+# Switch Input monitoring
+<filter example.syslog>
+  @type prometheus
+  <metric>
+    name fluentd_input_status_num_records_syslog
+    type counter
+    desc The total number of incoming records
+    <labels>
+      tag ${tag}
+      sourc_hostname "#{Socket.gethostname}"
+    </labels>
+  </metric>
+</filter>
+
+#######################################
+# expose metrics in prometheus format #
+#######################################

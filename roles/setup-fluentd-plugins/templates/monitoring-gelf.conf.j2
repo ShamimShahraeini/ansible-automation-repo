@@ -1,0 +1,19 @@
+######################
+## Input monitoring ##
+######################
+
+# Switch Input monitoring
+<filter example.gelf>
+  @type prometheus
+  <metric>
+    name fluentd_input_status_num_records_gelf
+    type counter
+    desc The total number of incoming records
+    <labels>
+      tag ${tag}
+      sourc_hostname "#{Socket.gethostname}"
+    </labels>
+  </metric>
+</filter>
+
+

@@ -1,0 +1,7 @@
+--- 
+
+- name: add monitoring exposer config 
+  become: true
+  template:
+    src: "./templates/monitoring-exposer.conf.j2"
+    dest: /etc/td-agent/config.d/monitoring.d/monitoring-exposer.conf 

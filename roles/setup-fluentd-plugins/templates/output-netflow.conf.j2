@@ -1,0 +1,56 @@
+##################################
+########### output ###############
+##################################
+
+# <match dst-lookup.netflow.event >
+#   @type stdout
+# </match>
+
+<match dst-lookup.netflow.event>
+  @type copy
+
+  <store>
+    @type opensearch
+    hosts {{opensearch_cluster}}
+    port 9200
+    scheme https
+    ssl_verify false
+    user "{{ opensearch_admin_user }}"
+    password "{{ opensearch_admin_password }}"
+  
+    ### Needed options to configure ISM
+    include_timestamp true
+    index_name {{ opensearch_netflow_index }}-alias
+
+    ### Rollover index configuration
+    application_name  fluentd-test-netflow
+    index_date_pattern ""
+    template_name	{{ opensearch_netflow_index }}-template
+
+    <buffer>
+      @type file
+      path /var/log/td-agent/buffer/fluentd/default/default-netflow
+      total_limit_size 30GB
+      chunk_limit_records 1000
+      flush_at_shutdown false
+      flush_interval 30
+      flush_thread_count 4
+      retry_timeout 72h
+    </buffer>
+  </store>
+
+  <store>
+    ### Prometheus
+    @type prometheus
+    	<metric>
+    	  name fluentd_output_status_num_records_total
+    	  type counter
+    	  desc The total number of outgoing records
+    	  <labels>
+    	    tag ${tag}
+    	    hostname ${hostname}
+    	  </labels>
+    	</metric>
+    </store>
+
+</match>

@@ -1,0 +1,61 @@
+---
+
+- name: install netflow plugin | Path to locate file
+  stat:
+    path: "/tmp/{{ ansible_env.USER }}/GemFiles/"
+  register: dirExists
+
+- name: install netflow plugin | Create the path to locate file
+  file:
+    path: "/tmp/{{ ansible_env.USER }}/GemFiles/"
+    state: directory
+    recurse: yes
+  when: not dirExists.stat.exists
+
+- name: install netflow plugin | Download netflow .gem file
+  get_url: 
+    url="{{ __plugin_repository['netflow_url'] }}"
+    dest="/tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['netflow_name'] }}.gem"
+
+- name: install netflow plugin | Install netflow plugin
+  become: true
+  command: /usr/sbin/td-agent-gem install --local /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['netflow_name'] }}.gem
+
+# - name: Install netflow
+#   gem:
+#     name: "{{ __plugin_name['netflow_name'] }}"
+#     gem_source: /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['netflow_name'] }}.gem
+#     executable: /usr/sbin/td-agent-gem
+#     force: yes
+#     include_dependencies: no
+  
+- name: install netflow plugin | Add netflow input configuration
+  become: true
+  template:
+    src: "./templates/input-netflow.conf.j2"
+    dest: /etc/td-agent/config.d/input.d/netflow-default.conf
+
+- name: install netflow plugin | Add netflow monitoring configuration
+  become: true
+  template:
+    src: "./templates/monitoring-netflow.conf.j2"
+    dest: /etc/td-agent/config.d/monitoring.d/netflow-default.conf
+
+- name: install netflow plugin | Add netflow output configuration
+  become: true
+  template:
+    src: "./templates/output-netflow.conf.j2"
+    dest: /etc/td-agent/config.d/output.d/netflow-default.conf
+
+- name: install netflow plugin | Create the path to locate definition file
+  become: true
+  file:
+    path: "/etc/td-agent/config.d/template/"
+    state: directory
+    recurse: yes
+
+- name: install netflow plugin | Add definition file for netflow
+  become: true
+  template:
+    src: "./templates/netflow_fields.yml"
+    dest: /etc/td-agent/config.d/template/netflow_fields.yml

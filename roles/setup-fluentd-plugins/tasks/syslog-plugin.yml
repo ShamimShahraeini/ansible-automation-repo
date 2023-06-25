@@ -1,0 +1,48 @@
+---
+
+- name: install syslog plugin | Path to locate file
+  stat:
+    path: "/tmp/{{ ansible_env.USER }}/GemFiles/"
+  register: dirExists
+
+- name: install syslog plugin | Create the path to locate file
+  file:
+    path: "/tmp/{{ ansible_env.USER }}/GemFiles/"
+    state: directory
+    recurse: yes
+  when: not dirExists.stat.exists
+
+- name: install syslog plugin | Download syslog .gem file
+  get_url: 
+    url="{{ __plugin_repository['syslog_url'] }}"
+    dest="/tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['syslog_name'] }}.gem"
+
+- name: install syslog plugin | Install syslog plugin
+  become: true
+  command: /usr/sbin/td-agent-gem install --local /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['syslog_name'] }}.gem
+
+# - name: Install syslog
+#   gem:
+#     name: "{{ __plugin_name['syslog_name'] }}"
+#     gem_source: /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['syslog_name'] }}.gem
+#     executable: /usr/sbin/td-agent-gem
+#     force: yes
+#     include_dependencies: no
+  
+- name: install syslog plugin | Add syslog input configuration
+  become: true
+  template:
+    src: "./templates/input-syslog.conf.j2"
+    dest: /etc/td-agent/config.d/input.d/syslog-default.conf
+
+- name: install syslog plugin | Add syslog monitoring configuration
+  become: true
+  template:
+    src: "./templates/monitoring-syslog.conf.j2"
+    dest: /etc/td-agent/config.d/monitoring.d/syslog-default.conf 
+
+- name: install syslog plugin | Add syslog output configuration
+  become: true
+  template:
+    src: "./templates/output-syslog.conf.j2"
+    dest: /etc/td-agent/config.d/output.d/syslog-default.conf

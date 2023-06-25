@@ -1,0 +1,10 @@
+---
+- block: 
+    - name: Check if td-agent is installed
+      stat: path=/usr/sbin/td-agent
+      register: isInstalled
+    - name: Start and enable td-agent
+      service: name=td-agent state=started enabled=yes
+      when: isInstalled
+  tags: start
+  become: true

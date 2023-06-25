@@ -1,0 +1,60 @@
+#### mapping
+
+- name: Add script to get ipam data 
+  become: true
+  blockinfile:
+    path: /etc/td-agent/config.d/mapping.d/ipam-sync.sh
+    create: yes
+    mode: u+rwx
+    block: |
+      #/bin/bash
+    
+      curl -k --header "Authorization: Token {{ipam_token}}" --request GET "https://ipam.example.ir/api/virtualization/virtual-machines/?q=&mac_address=&has_primary_ip=True&local_context_data=&export=raw-ip-mapping" | sed 's/\/[0-9][0-9]//' > /etc/td-agent/config.d/mapping.d/ipam.csv
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+
+- name: Set cronjob to run script
+  become: true
+  cron:
+    name: "### recording mixing/compressing/ftping scripts"
+    user: "td-agent"
+    minute: "*"
+    hour: "*/2"
+    day: "*"
+    month: "*"
+    weekday: "*"
+    job: /etc/td-agent/config.d/mapping.d/ipam-sync.sh >/dev/null 2>&1
+
+- name: Download lookup plugin .gem file
+  get_url: 
+    url="{{__plugin_repository['lookup_url']}}"
+    dest="/tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['lookup_name'] }}.gem"
+
+# - name: Install lookup plugin
+#   become: yes
+#   gem:
+#     name: "{{ __plugin_name['lookup_name'] }}"
+#     gem_source: /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['lookup_name'] }}.gem
+#     executable: /usr/sbin/td-agent-gem
+
+- name: Install lookup plugin
+  become: true
+  command: /usr/sbin/td-agent-gem install --local /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['lookup_name'] }}.gem
+
+- name: Bug fix
+  become: true
+  template:
+    src: "./templates/lookup-plugin-bugfix.conf"
+    dest: /opt/td-agent/lib/ruby/gems/2.7.0/gems/fluent-plugin-lookup-0.0.2/lib/fluent/plugin/out_lookup.rb 
+
+- name: Create ipam.csv empty file
+  become: true 
+  file:
+    path: /etc/td-agent/config.d/mapping.d/ipam.csv
+    owner: td-agent
+    group: td-agent
+    mode: 0644
+    state: touch
+
+- name: Set permissions for td-agent user 
+  become: true
+  command: 'chown -R td-agent: /etc/td-agent/config.d/mapping.d/'

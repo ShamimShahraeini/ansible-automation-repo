@@ -1,0 +1,11 @@
+######################
+####### Input ########
+######################
+
+<source>
+  @type gelf
+  tag example.gelf
+  bind {{ansible_default_ipv4.address}}
+  port {{ gelf_input_port }}
+  protocol_type tcp
+</source>

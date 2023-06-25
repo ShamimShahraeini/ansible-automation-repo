@@ -1,0 +1,10 @@
+######################
+####### Input ########
+######################
+
+<source>
+  @type syslog
+  port {{ syslog_input_port }}
+  bind {{ansible_default_ipv4.address}}
+  tag example.syslog
+</source>

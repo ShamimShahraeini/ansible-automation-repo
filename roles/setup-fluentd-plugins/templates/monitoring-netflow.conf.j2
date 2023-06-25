@@ -1,0 +1,21 @@
+######################
+## Input monitoring ##
+######################
+
+# Switch Input monitoring
+<filter netflow.event>
+  @type prometheus
+  <metric>
+    name fluentd_input_status_num_records_netflow
+    type counter
+    desc The total number of incoming records
+    <labels>
+      tag ${tag}
+      sourc_hostname "#{Socket.gethostname}"
+    </labels>
+  </metric>
+</filter>
+
+#######################################
+# expose metrics in prometheus format #
+#######################################

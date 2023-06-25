@@ -1,0 +1,58 @@
+---
+
+- name: install gelf plugin | Path to locate file
+  stat:
+    path: "/tmp/{{ ansible_env.USER }}/GemFiles/"
+  register: dirExists
+
+- name: install gelf plugin | Create the path to locate file
+  file:
+    path: "/tmp/{{ ansible_env.USER }}/GemFiles/"
+    state: directory
+    recurse: yes
+  when: not dirExists.stat.exists
+
+- name: install gelf plugin | Download gelfd2 .gem file
+  get_url: 
+    url="{{ __plugin_repository['gelfd2_url'] }}"
+    dest="/tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['gelfd2_name'] }}.gem"
+
+
+- name: install gelf plugin | Install gelf plugin
+  become: true
+  command: /usr/sbin/td-agent-gem install --local /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['gelfd2_name'] }}.gem
+
+- name: install gelf plugin | Download gelf .gem file
+  get_url: 
+    url="{{ __plugin_repository['gelf_url'] }}"
+    dest="/tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['gelf_name'] }}.gem"
+
+- name: install gelf plugin | Install gelf plugin
+  become: true
+  command: /usr/sbin/td-agent-gem install --local /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['gelf_name'] }}.gem
+
+# - name: Install gelf
+#   gem:
+#     name: "{{ __plugin_name['gelf_name'] }}"
+#     gem_source: /tmp/{{ ansible_env.USER }}/GemFiles/{{ __plugin_name['gelf_name'] }}.gem
+#     executable: /usr/sbin/td-agent-gem
+#     force: yes
+#     include_dependencies: no
+  
+- name: install gelf plugin | Add gelf input configuration
+  become: true
+  template:
+    src: "./templates/input-gelf.conf.j2"
+    dest: /etc/td-agent/config.d/input.d/gelf-default.conf
+
+- name: install gelf plugin | Add gelf monitoring configuration
+  become: true
+  template:
+    src: "./templates/monitoring-gelf.conf.j2"
+    dest: /etc/td-agent/config.d/monitoring.d/gelf-default.conf
+
+- name: Add gelf output configuration
+  become: true
+  template:
+    src: "./templates/output-gelf.conf.j2"
+    dest: /etc/td-agent/config.d/output.d/gelf-default.conf

@@ -1,0 +1,47 @@
+---
+
+- name: Check if td-agent is installed
+  command: dpkg-query -W td-agent
+  register: tdagent_check_deb
+  failed_when: tdagent_check_deb.rc > 1
+  changed_when: tdagent_check_deb.rc == 1
+
+- name: Check permissions to repo
+  uri:
+    url: https://rubygems.org
+    timeout: 1
+  register: http_response
+  failed_when: http_response.status != 200
+- debug: msg="{{ http_response }}"
+
+- name: Install td-agent
+  become: true
+  apt: 
+    deb: "{{  __td_repository['td_url'] }}"
+    force: yes
+  when: tdagent_check_deb.rc == 1
+
+- name: Path to locate file
+  stat:
+    path: "/tmp/{{ ansible_env.USER }}/GemFiles/"
+  register: dirExists
+
+- name: Create the path to locate file
+  file:
+    path: "/tmp/{{ ansible_env.USER }}/GemFiles/"
+    state: directory
+    recurse: yes
+  when: not dirExists.stat.exists
+
+- name: Download prometheus .gem file
+  get_url: 
+    url="{{ __td_repository['prometheus_url']}}"
+    dest="/tmp/{{ ansible_env.USER }}/GemFiles/prometheus.gem"
+
+- name: Install prometheus
+  gem:
+    name: "fluent-plugin-prometheus"
+    gem_source: /tmp/{{ ansible_env.USER }}/GemFiles/prometheus.gem
+    executable: /usr/sbin/td-agent-gem
+    force: yes
+    include_dependencies: no

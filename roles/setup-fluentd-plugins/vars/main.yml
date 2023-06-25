@@ -1,0 +1,29 @@
+__plugin_repository:
+    syslog_url: "https://rubygems.org/downloads/fluent-plugin-syslog-0.1.18.gem"
+    gelf_url: "https://rubygems.org/downloads/fluent-plugin-input-gelf-0.3.1.gem"
+    gelfd2_url: "https://rubygems.org/downloads/gelfd2-0.4.1.gem"
+    netflow_url: "https://rubygems.org/downloads/fluent-plugin-netflow-1.1.0.gem"
+    lookup_url: "https://rubygems.org/downloads/fluent-plugin-lookup-0.0.2.gem"
+
+__plugin_name:
+    syslog_name: "fluentd-plugin-syslog"
+    gelf_name: "fluentd-plugin-gelf"
+    gelfd2_name: "gelfd2"
+    netflow_name: "fluentd-plugin-netflow"
+    lookup_name: "fluentd-plugin-lookup"
+
+opensearch_admin_user: ""
+opensearch_admin_password: ""
+
+# Default input vars
+opensearch_syslog_index: "example-syslog-default-{{ index_env }}-{{ index_site }}"
+fluentd_syslog_tag_name: "default-{{ index_env }}-{{ index_site }}.syslog"
+opensearch_gelf_index: "example-gelf-default-{{ index_env }}-{{ index_site }}"
+fluentd_gelf_tag_name: "default-{{ index_env }}-{{ index_site }}.gelf"
+opensearch_netflow_index: "example-netflow-default-{{ index_env }}-{{ index_site }}"
+fluentd_netflow_tag_name: "default-{{ index_env }}-{{ index_site }}.netflow"
+
+# default input ports
+gelf_input_port: 12214
+netflow_input_port: 7075
+syslog_input_port: 5555

@@ -1,0 +1,56 @@
+---
+# ansible-playbook -i inventory/fluentd-hosts -e hosts=test playbooks/fluentd-setup.yml -v --tags "install, start, netflow, syslog" --extra-vars "ipam_token=**** netflow_index=netflow-monitoring"
+- name: td-agent setup service
+  hosts: "{{ hosts }}"
+
+  pre_tasks:
+
+    - name: "Check variable 'opensearch_admin_user' is defined"
+      fail:
+        msg: "Please fill variable 'opensearch_admin_user'"
+      when:
+        - opensearch_admin_user == ""
+  
+    - name: "Check variable 'opensearch_admin_password' is defined"
+      fail:
+        msg: "Please fill variable 'opensearch_admin_password'"
+      when:
+        - opensearch_admin_password == ""
+
+    - name: "Check variable 'index_env' is defined"
+      fail:
+        msg: "Please fill variable 'index_env'"
+      when:
+        - index_env == ""
+
+    - name: "Check variable 'index_site' is defined"
+      fail:
+        msg: "Please fill variable 'index_site'"
+      when:
+        - index_site == ""
+
+    - name: "Check variable 'netflow_input_port' is defined"
+      fail:
+        msg: "Please fill variable 'netflow_input_port'"
+      when:
+        - netflow_input_port == ""
+      tags: netflow
+
+    - name: "Check variable 'syslog_input_port' is defined"
+      fail:
+        msg: "Please fill variable 'syslog_input_port'"
+      when:
+        - syslog_input_port == ""
+      tags: syslog
+
+    - name: "Check variable 'gelf_input_port' is defined"
+      fail:
+        msg: "Please fill variable 'gelf_input_port'"
+      when:
+        - gelf_input_port == ""
+      tags: gelf
+
+  roles:
+    - role: install-fluentd
+    - role: setup-fluentd-plugins
+    - role: start-fluentd

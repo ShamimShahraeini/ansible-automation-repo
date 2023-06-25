@@ -1,0 +1,27 @@
+---
+
+- name: Add default configuration
+  become: true
+  template:
+    src: "./templates/td-agent.conf"
+    dest: /etc/td-agent/td-agent.conf 
+  when: isInstalled
+
+- name: Create config dir
+  become: true
+  file:
+    path: /etc/td-agent/config.d/
+    state: directory
+    mode: '0755'
+  when: isInstalled
+
+- name: Create other config directories
+  become: true
+  file:
+    path: /etc/td-agent/config.d/{{directory}}
+    state: directory
+    mode: '0755'
+  when: isInstalled
+  loop: "{{ config_directory }}"
+  loop_control:
+    loop_var: directory
