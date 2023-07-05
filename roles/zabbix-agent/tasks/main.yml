@@ -16,14 +16,18 @@
 #  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
 
 - name: Copy the zabbix pkg file
-  ansible.builtin.template:
-    src: ./templates/zabbix-release_5.0-1_focal_all.deb
-    dest: ./
-    mode: '0777'
+  ansible.builtin.copy:
+    src: zabbix-release_5.0-1+focal_all.deb
+    dest: /root/zabbix-release_5.0-1_focal_all.deb
+    force: no
   when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
 
-- name: Pre-install zabbix-agent2
-  ansible.builtin.command: dpkg -i ./zabbix-release_5.0-1_focal_all.deb && apt update
+- name: Pre-install zabbix-agent2:dpk
+  ansible.builtin.command: dpkg -i /root/zabbix-release_5.0-1_focal_all.deb
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+
+- name: Pre-install zabbix-agent2:update
+  ansible.builtin.command: apt update
   when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
 
 - name: Install zabbix-agent2
@@ -31,7 +35,14 @@
     pkg:
     - zabbix-agent2
     #- zabbix-agent2-plugin-*
-    update_cache: yes
+    #update_cache: yes
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
+
+- name: Delete existing junk file
+  file:
+    path: "/root/zabbix-release_5.0-1_focal_all.deb"
+    state: absent
+  ignore_errors: true
   when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20"
 
 - name: Stop and disable zabbix-agent1
@@ -48,31 +59,6 @@
   when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "20" and ansible_facts.services['zabbix-agent2.service'] is defined
   notify: Restart and enable zabbix-agent2
 
-####ubuntu 18
-- name: Install zabbix-agent
-  ansible.builtin.apt:
-    pkg:
-    - zabbix-agent
-    #- zabbix-agent-plugin-*
-    update_cache: yes
-  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18"
-
-- name: Restart zabbix-agent
-  ansible.builtin.systemd:
-    name: zabbix-agent
-    state: restarted
-    enabled: true
-  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18" and ansible_facts.services['zabbix-agent.service'] is defined
-
-- name: Create /etc/zabbix/scripts directory
-  ansible.builtin.file:
-    path: /etc/zabbix/scripts
-    state: directory
-    owner: zabbix
-    group: zabbix
-    mode: 0700
-
-####ubuntu 20
 - name: Change zabbix_agent2.conf Hostname
   ansible.builtin.lineinfile:
     path: /etc/zabbix/zabbix_agent2.conf
@@ -101,6 +87,21 @@
   notify: Restart and enable zabbix-agent2
 
 ####ubuntu 18
+- name: Install zabbix-agent
+  ansible.builtin.apt:
+    pkg:
+    - zabbix-agent
+    #- zabbix-agent-plugin-*
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18"
+
+- name: Restart zabbix-agent
+  ansible.builtin.systemd:
+    name: zabbix-agent
+    state: restarted
+    enabled: true
+  when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18" and ansible_facts.services['zabbix-agent.service'] is defined
+
 - name: Change zabbix_agent.conf Hostname
   ansible.builtin.lineinfile:
     path: /etc/zabbix/zabbix_agentd.conf
