@@ -1,0 +1,37 @@
+---
+
+#- name: Create a new host
+#  community.zabbix.zabbix_host:
+#    server_url: "{{ zbx_url }}"
+#    login_user: "{{ zbx_user }}"
+#    login_password: "{{ zbx_user_pass }}"
+#    host_name: "{{ ansible_hostname }}"
+#    visible_name: "{{ ansible_hostname }}-{{ ansible_default_ipv4.address }}"
+#    description: The {{ ansible_hostname }} panel.
+#    host_groups:
+#      - "{{ zbx_gp_id }}"
+#    link_templates:
+#      - Linux by Zabbix agent
+#    status: enabled
+#    state: present
+#    interfaces:
+#      - type: 1
+#        main: 1
+#        useip: 1
+#        ip: "{{ ansible_default_ipv4.address }}"
+#        dns: ""
+#        port: 10050
+#  delegate_to: localhost
+
+- name: Create Dashboard
+  shell: |
+    curl --request POST \
+          --url '{{ zbx_url }}' \
+          --header 'Content-Type: application/json-rpc' \
+          --header 'Authorization: Bearer {{ zbx_token }}' \
+          --data '{"jsonrpc": "2.0", "method": "host.create", "params": { "host": "{{ ansible_hostname }}", "name": "{{ ansible_hostname }}-{{ ansible_default_ipv4.address }}", "interfaces": [{"type": 1,"main": 1,"useip": 1,"ip": "{{ ansible_default_ipv4.address }}","dns": "","port": "10050"}], "groups": [{"groupid": "{{ zbx_gp_id }}"}], "tags": [{"tag": "Host name", "value": "{{ ansible_hostname }}"}], "templates": [{"templateid": "10001"}] } ,"id": 1 , "auth": "{{ zbx_token }}" } ' \
+          -k \
+          -v
+  become: False
+  delegate_to: localhost
+

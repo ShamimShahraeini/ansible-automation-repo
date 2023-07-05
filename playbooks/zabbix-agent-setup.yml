@@ -5,7 +5,21 @@
 
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    zbx_srv_ip: 192.168.1.63
-    zbx_srv_port: 10051
+    
   roles:
-    - zabbix-agent
+    - role: zabbix-agent
+      vars:
+        zbx_srv_ip: 192.168.1.63
+        zbx_srv_port: 10051
+      tags:
+        - install
+    - role: add-to-zabbix-panel
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+        zbx_url: https://monitor.rovzane.com/zabbix/api_jsonrpc.php
+        zbx_user: Admin
+        zbx_user_pass: 4ZZQ55R4p6f0aL2k
+        zbx_token: f6f9e4f8e44633e8d51350c76c2b42d9
+        zbx_gp_id: 31
+      tags: 
+        - panel
