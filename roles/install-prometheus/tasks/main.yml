@@ -1,0 +1,135 @@
+---
+- name: Download prometheus
+  get_url:
+    url: 'https://github.com/prometheus/prometheus/releases/download/v2.45.0/prometheus-2.45.0.darwin-amd64.tar.gz'
+    dest: /opt/
+    validate_certs: False
+
+- name: Extract into /opt
+  ansible.builtin.unarchive:
+    src: /opt/prometheus-2.45.0.darwin-amd64.tar.gz
+    dest: /opt/ 
+
+- name: Create a Prometheus user
+  command: sudo useradd --no-create-home --shell /bin/false prometheus  
+
+- name: Create folder /etc/prometheus
+  file: 
+    path: /etc/prometheus
+    owner: prometheus 
+    group: prometheus 
+    state: directory
+
+- name: Create folder /var/lib/prometheus
+  file: 
+    path: /var/lib/prometheus
+    owner: prometheus 
+    group: prometheus 
+    state: directory
+
+- name: Create folder /etc/prometheus/cert
+  file: 
+    path: /etc/prometheus/cert
+    owner: prometheus 
+    group: prometheus 
+    state: directory
+
+- name: Create folder  /opt/prometheus
+  file: 
+    path: /opt/prometheus
+    owner: prometheus 
+    group: prometheus 
+    state: directory
+
+- name: Copy prometheus files
+  copy: remote_src=True src=/opt/prometheus-2.45.0.darwin-amd64/ dest=/opt/prometheus/
+
+- name: Copy prometheus files
+  copy: remote_src=True src=/opt/prometheus/prometheus dest=/usr/local/bin/
+
+- name: Copy promtool files
+  copy: remote_src=True src=/opt/prometheus/promtool dest=/usr/local/bin/
+
+- name: Copy consoles files
+  copy: remote_src=True src=/opt/prometheus/consoles dest=/etc/prometheus
+
+- name: Copy consoles files
+  copy: remote_src=True src=/opt/prometheus/console_libraries dest=/etc/prometheus
+
+
+- name: add prometheus.yml
+  template:
+    src: prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+
+- name: add key
+  template:
+    src: example.ir.key
+    dest: /etc/prometheus/cert/example.ir.key
+
+- name: add crt
+  template:
+    src: example.ir.crt
+    dest: /etc/prometheus/cert/example.ir.crt
+
+- name: add web-config.yml
+  template:
+    src: web-config.yml
+    dest: /etc/prometheus/web-config.yml
+
+
+- name: Create a prometheus service file
+  template:
+    src: prometheus.service
+    dest: /etc/systemd/system/prometheus.service
+
+- name: add example-ir-self-signed-ca.crt
+  template:
+    src: example-ir-self-signed-ca.crt
+    dest: /etc/prometheus/cert/example-ir-self-signed-ca.crt
+
+- name: add example-ir-self-signed-ca.crt
+  template:
+    src: example-ir-self-signed-ca.crt
+    dest: /usr/local/share/ca-certificates/example-ir-self-signed-ca.crt
+
+- name:  update-ca-certificates
+  command:  sudo update-ca-certificates
+
+
+- name: Recursively change ownership of /etc/prometheus/
+  file:
+    path: /etc/prometheus/
+    state: directory
+    recurse: yes
+    owner: prometheus
+    group: prometheus
+
+- name: Recursively change ownership of /usr/local/bin/prometheus
+  file:
+    path: /usr/local/bin/prometheus
+    owner: prometheus
+    group: prometheus
+
+- name: Recursively change ownership of /usr/local/bin/promtool
+  file:
+    path: /usr/local/bin/promtool
+    owner: prometheus
+    group: prometheus
+
+- name: prometheus permission
+  command: chmod 751 /usr/local/bin/prometheus 
+
+- name: promtool permission
+  command: chmod 751 /usr/local/bin/promtool 
+
+
+- name: reload service
+  command: sudo systemctl daemon-reload 
+
+- name: start service
+  command: sudo systemctl start prometheus
+  
+- name: enable service
+  command: sudo systemctl enable prometheus
+

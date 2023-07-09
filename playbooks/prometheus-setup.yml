@@ -1,0 +1,11 @@
+---
+#ansible-playbook  -e host=test  -i inventory/hosts -e prometheus_name=name -e retention_time=90d -e admin_pass_hash=**** -e user_pass_hash=**** -e user_pass=**** -e instance=prometheus-server.example.ir:9090 --become --become-method=sudo  --ask-pass  --ask-become-pass  playbooks/prometheus-setup.yml
+#https://bcrypt-generator.com/ -  openssl rand -base64 12 -  
+#python3 gen-pass.py
+- hosts: "{{ host }}"
+
+  vars:
+    ansible_hostname: "{{ inventory_hostname }}" 
+
+  roles:
+    - role: install-prometheus 

@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 60s
+
+scrape_configs:
+
+
+  - job_name: 'prometheus'
+    scrape_interval: 60s
+    scheme: https
+    static_configs:
+      - targets: ['{{ prometheus_name }}:9090']
+    basic_auth:
+      username: user
+      password: {{ user_pass }}
+    tls_config:
+      ca_file: /etc/prometheus/cert/example-ir-self-signed-ca.crt 
+
+
